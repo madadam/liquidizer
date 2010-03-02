@@ -1,0 +1,103 @@
+= Liquidizer
+
+Liquidizer is a gem for Ruby on Rails that allows to render pages using templates stored in the
+database. It is mostly useful for project that provide kind of multi-site hosting.
+
+Let's say you want to have a blogging system where people can create their blogs about
+kittens, ninjas or vampires. Using this gem, you can allow them to edit the look and
+feel of their blog using just their browser. Every blog can have it's own set of templates.
+
+This uses liquid (http://www.liquidmarkup.org/) templating system (thus the name), because it's
+easy to use, extend and it's safe.
+
+== Installation
+
+It's hosted on http://gemcutter.org. Add it to your source list if you don't have it already:
+
+    sudo gem source --add http://gemcutter.org
+
+Then install:
+
+    sudo gem install liquidizer
+
+And add this to your config/environment.rb:
+
+    config.gem 'liquidizer'
+
+== How to use
+
+Let's say (following the blog example) that you have a model Blog that you want to associate
+the templates with. You do that with the has_liquid_templates macro:
+
+    class Blog < ActiveRecord::Base
+      has_liquid_templates
+
+      # your own stuff ...
+    end
+
+Then, you need to tell the liquidizer where to take the templates from. You do that
+by defining method +liquid_templates+ in your controllers. This method should return
+a collection of liquid templates. The +has_liquid_templates+ provides one for you:
+
+    class ApplicationController < ActionController::Base
+      
+      # other stuff...
+
+      private
+
+      def liquid_templates
+        current_blog.liquid_templates
+      end
+    end
+
+The +current_blog+ returns a Blog instance. One possible implementation is to find one
+by the current subdomain.
+
+And the last thing is to set which actions in which controllers should be rendered:
+
+    class BlogPostController < ApplicationController
+      liquidize # This will apply the templates to all actions in this controller.
+    end
+
+If you put the +liquidize+ line into your ApplicationController, all actions in all
+controllers will be liquidized.
+
+If the template is not found in the database, a default one is used. Defaults are stored
+in the filesystem, by default in db/liquid_templates. 
+
+== Advanced configuration
+
+The +liquidize+ controller macro has several forms:
+
+1. Liquidize all actions, automatically infer template names:
+
+    liquidize
+
+or:
+
+    liquidize :all
+
+The templates names are infered in similar way that rails routes are. For example, for
+action show in controller Blog::PostsController, the default name will be "blog/post". For
+action index in the same controller, it will be "blog/posts". For action edit, "blog/post/edit".
+
+2. Liquidize only some actions, automatically infer template names:
+
+    liquidize :show, :edit
+
+3. Complete customization:
+
+    liquidize :show,  :with => 'funky_blog_post_template'
+    liquidize :index, :with => 'funky_blog_post_index_template'
+
+You can call +liquidize+ multiple times to configure each action separately.
+
+== Future
+
+The obvious way to extend this gem would be to add different template handlers in addition
+to liquid. But since I don't really need it, I can't be bothered :)
+You are however free to fork and hack!
+
+== Legal stuff
+
+Copyright (c) 2010 Adam Cigánek <adam.ciganek@gmail.com>. Released under the MIT License: www.opensource.org/licenses/mit-license.php
