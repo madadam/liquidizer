@@ -66,7 +66,7 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'passes instance variables to liquid template' do
     setup_controller(PostsController)
     
-    LiquidTemplate.create!(:name    => 'posts/index', :content => "<h1>{{ title }}</h1>")
+    LiquidTemplate.create!(:name => 'posts/index', :content => "<h1>{{ title }}</h1>")
 
     get :index
     assert_select 'h1', /Hello blog!/

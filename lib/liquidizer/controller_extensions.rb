@@ -14,25 +14,18 @@ module Liquidizer
     end
 
     def render_with_liquid(options = {}, &block)
-      action   = extract_action_for_render(options)
-      template = action && liquify?(action) && liquid_template_for(action)
-
-      if template = liquid_template_for(action)
+      if action_template = liquid_template_for_action(options)
         assigns = assigns_for_liquify
-        content = template.render!(assigns)
+        content = action_template.render!(assigns)
 
-        layout_template = liquify_layout?(options) && liquid_template_for_layout
-
-        if layout_template
+        if layout_template = liquid_template_for_layout(options)
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
           options[:layout] = false
         end
 
         render_without_liquid(options.merge(:text => content))
       else
-        layout_template = liquify_layout?(options) && liquid_template_for_layout
-
-        if layout_template
+        if layout_template = liquid_template_for_layout(options)
           assigns = assigns_for_liquify
 
           content = render_to_string(options.merge(:layout => false))
@@ -47,6 +40,35 @@ module Liquidizer
 
     private
 
+    def liquid_template_for_action(options)
+      action = extract_action_for_render(options)
+      
+      if action && liquify?(action)
+        name = liquid_template_name_for_action(action)
+        find_and_parse_liquid_template(name)
+      else
+        nil
+      end
+    end
+    
+    def liquify?(action)
+      self.class.liquify_actions == :all ||
+      self.class.liquify_actions.include?(action.to_sym)
+    end
+
+    def liquid_template_for_layout(options)
+      if liquify_layout?(options)
+        find_and_parse_liquid_template(self.class.liquid_template_name_for_layout)
+      else
+        nil
+      end
+    end
+    
+    def liquify_layout?(options)
+      (options[:layout].nil? || options[:layout] == true) &&
+        self.class.liquid_template_name_for_layout.present?
+    end
+    
     def extract_action_for_render(options)
       if options.nil?
         action_name
@@ -57,35 +79,12 @@ module Liquidizer
       else
         nil
       end 
-
-      # TODO: options can be hash not containing :action, neither any other render mode
-      # (:text, :file, :template, :json, :xml, :inline, ...) in which case it should be
-      # interpreted as :action => action_name
     end
 
     UNLIQUIFIABLE_OPTIONS = [:partial, :template, :file, :text, :xml, :json, :js, :inline]
 
     def liquifiable_options?(options)
       (options.keys.map(&:to_sym) & UNLIQUIFIABLE_OPTIONS).empty?
-    end
-
-    def liquify?(action)
-      self.class.liquify_actions == :all ||
-      self.class.liquify_actions.include?(action.to_sym)
-    end
-
-    def liquify_layout?(options)
-      (options[:layout].nil? || options[:layout] == true) &&
-        self.class.liquid_template_name_for_layout.present?
-    end
-
-    def liquid_template_for(action)
-      name = liquid_template_name_for_action(action)
-      find_and_parse_liquid_template(name)
-    end
-
-    def liquid_template_for_layout
-      find_and_parse_liquid_template(self.class.liquid_template_name_for_layout)
     end
     
     def find_and_parse_liquid_template(name)
@@ -158,7 +157,7 @@ module Liquidizer
         options = actions.extract_options!
         actions = actions.map(&:to_sym)
 
-        self.liquify_actions = actions || :all
+        self.liquify_actions = actions.empty? ? :all : actions
         self.liquid_template_names_for_actions = {}
 
         if options[:as]
