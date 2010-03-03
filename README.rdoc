@@ -1,14 +1,14 @@
 = Liquidizer
 
 Liquidizer is a gem for Ruby on Rails that allows to render pages using templates stored in the
-database. It is mostly useful for project that provide kind of multi-site hosting.
+database. It uses liquid (http://www.liquidmarkup.org/) templating system (thus the name),
+because it's easy to use, extend and it's safe to edit by users.
 
-Let's say you want to have a blogging system where people can create their blogs about
-kittens, ninjas or vampires. Using this gem, you can allow them to edit the look and
-feel of their blog using just their browser. Every blog can have it's own set of templates.
+One example of when you might want to use it is this: Let's say you want to have a blogging
+system where people can create their blogs about kittens, ninjas or vampires. Using this gem,
+you can allow them to edit the look and feel of their blog using just their browser. Every
+blog can have it's own set of templates.
 
-This uses liquid (http://www.liquidmarkup.org/) templating system (thus the name), because it's
-easy to use, extend and it's safe.
 
 == Installation
 
@@ -26,77 +26,108 @@ And add this to your config/environment.rb:
 
 == How to use
 
-Let's say (following the blog example) that you have a model Blog that you want to associate
-the templates with. You do that with the has_liquid_templates macro:
+First you have to specify which actions of which controllers should be liquified - rendered
+with loadable liquid templates. To do that, use the +liquify+ controller macro:
 
-    class Blog < ActiveRecord::Base
-      has_liquid_templates
-
-      # your own stuff ...
+    class PostController < ApplicationController
+      # This will apply the templates to all actions in this controller.
+      liquify
     end
 
-Then, you need to tell the liquidizer where to take the templates from. You do that
-by defining method +liquid_templates+ in your controllers. This method should return
-a collection of liquid templates. The +has_liquid_templates+ provides one for you:
+If you want to liquify only some actions, but leave the others to be rendered using standard
+Rails means, do this:
+
+    class PostController < ApplicationController
+      # Liquify only :show and :index.
+      liquify :show, :index
+    end
+
+By default, Liquidizer will infer liquid template names from the controller and action name
+in the same way Rails does. So action index in controller PostsController will have
+template called "posts/index". Namespaced controllers work too: index in Blog::PostsController
+will have template "blog/posts/index". This, however, can be overriden:
+
+
+    class PostController < ApplicationController
+      # This will liquify only show, but will use template called "awesome_show_template"
+      liquify :show, :as => 'awesome_show_template'
+    end
+
+The +liquify+ macro is inherited, so if you want to apply liquid templates to all actions
+in all controller, put it into ApplicationController. You can fine-tune it in derived
+controllers, if you want:
 
     class ApplicationController < ActionController::Base
-      
-      # other stuff...
+      liquify
+    end
 
+    class PostsController < ApplicationController
+      liquify :show,  :as => 'kickass_show'
+      liquify :index, :as => 'hardcore_index'
+    end
+
+To liquify also layouts, use the +liquify_layout+ macro:
+
+    class ApplicationController < ActionController::Base
+      # This will use layout called "layout"
+      liquify_layout
+
+      # This will use layout called "awesome_kickass_layout"
+      liquify_layout :as => "awesome_kickass_layout"
+    end
+
+The last step is to tell Liquidizer where to load the liquid templates from. The way to implement
+this is completely up to you. For example, you can associate the templates for example with the
+Blog model (to follow the blog example) and have something like current_blog, which is loaded by
+the current subdomain.
+
+In any case, you need to provide a +current_liquid_templates+ method,
+which should return collection of liquid templates to use. This method should return something
+that responds at least to +find_by_name+ which returns an object that responds to +content+
+which returns a string containing the liquid template.
+
+The easies way to do this, is to have a LiquidTemplate model and return a collections of
+those in the +current_liquid_templates+. Liquidizer provides one such model for you,
+but you will probably want to use your own. To make your life easier, there is a module
+Liquidizer::LiquidTemplate which you can include into your template model to extend it with
+some helpful methods (see the docs for more info):
+
+    class Blog < ActiveRecord::Base
+      has_many :liquid_templates
+    end
+
+    # The 
+    class LiquidTemplate < ActiveRecord::Base
+      include Liquidizer::LiquidTemplate
+      belongs_to :blog
+    end
+
+    class ApplicationController < ActionController::Base
       private
 
-      def liquid_templates
+      def current_liquid_templates
         current_blog.liquid_templates
       end
     end
 
-The +current_blog+ returns a Blog instance. One possible implementation is to find one
-by the current subdomain.
+And that's it. You are now ready to kick asses!
 
-And the last thing is to set which actions in which controllers should be rendered:
+== TODO
 
-    class BlogPostController < ApplicationController
-      liquidize # This will apply the templates to all actions in this controller.
-    end
+There are several possible improvements to this gem:
 
-If you put the +liquidize+ line into your ApplicationController, all actions in all
-controllers will be liquidized.
+- Extend it so it can handle different template systems in addition (unlikely, since I don't
+  need it and can't be bothered :) )
 
-If the template is not found in the database, a default one is used. Defaults are stored
-in the filesystem, by default in db/liquid_templates. 
+- The Rails 3 has improved ActionView API and as far as I understand, abstracts away the
+  concept of template storage. Taking advantage of this could potentialy simplify this gem.
+  Also, support Rails 3 in general would be nice.
 
-== Advanced configuration
+- This does some nasty hacks into the ActionController::Base's render method. That method
+  originaly has quite liberal API, allowing to specify it's parameters in many ways. To make
+  this gem simple, some of those ways were sacrificed. Would be nice to support them too.
 
-The +liquidize+ controller macro has several forms:
-
-1. Liquidize all actions, automatically infer template names:
-
-    liquidize
-
-or:
-
-    liquidize :all
-
-The templates names are infered in similar way that rails routes are. For example, for
-action show in controller Blog::PostsController, the default name will be "blog/post". For
-action index in the same controller, it will be "blog/posts". For action edit, "blog/post/edit".
-
-2. Liquidize only some actions, automatically infer template names:
-
-    liquidize :show, :edit
-
-3. Complete customization:
-
-    liquidize :show,  :with => 'funky_blog_post_template'
-    liquidize :index, :with => 'funky_blog_post_index_template'
-
-You can call +liquidize+ multiple times to configure each action separately.
-
-== Future
-
-The obvious way to extend this gem would be to add different template handlers in addition
-to liquid. But since I don't really need it, I can't be bothered :)
-You are however free to fork and hack!
+Potentialy many more. In any case, it's open source project (MIT), so no fear, fork me and hack!
 
 == Legal stuff
 

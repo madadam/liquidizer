@@ -21,11 +21,10 @@ module Liquidizer
         assigns = assigns_for_liquify
         content = template.render!(assigns)
 
-        if liquify_layout?(options)
-          if layout_template = liquid_template_for_layout
-            content = layout_template.render!(assigns.merge('content_for_layout' => content))
-          end
+        layout_template = liquify_layout?(options) && liquid_template_for_layout
 
+        if layout_template
+          content = layout_template.render!(assigns.merge('content_for_layout' => content))
           options[:layout] = false
         end
 
@@ -95,8 +94,7 @@ module Liquidizer
     end
 
     def liquid_template_name_for_action(action)
-      liquid_template_names_for_actions[action.to_sym] ||
-        infer_liquid_template_name(action)
+      liquid_template_names_for_actions[action.to_sym] || infer_liquid_template_name(action)
     end
 
     def infer_liquid_template_name(action)
@@ -104,7 +102,7 @@ module Liquidizer
     end
 
     def find_liquid_template(name)
-      liquid_templates.find_by_name(name)
+      current_liquid_templates.find_by_name(name)
     end
 
     def parse_liquid_template(template)

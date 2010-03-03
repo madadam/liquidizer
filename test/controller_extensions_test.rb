@@ -5,8 +5,8 @@ class BaseController < ActionController::Base
 
   private
 
-  def liquid_templates
-    Blog.first.liquid_templates
+  def current_liquid_templates
+    LiquidTemplate
   end
 end
 
@@ -47,31 +47,26 @@ class RatingsController < BaseController
   end
 end
 
-# class SpamController < BaseController
-#   layout 'spam'
-#   liquify :all
-# 
-#   def index
-#   end
-# end
-
 class ControllerExtensionsTest < ActionController::TestCase
   self.controller_class = nil
 
   def setup
-    Blog.destroy_all
-    @blog = Blog.create!(:title => 'Awesome blog about ninjas and stuff')
+    LiquidTemplate.destroy_all
   end
   
   test 'renders with liquid template' do
     setup_controller(PostsController)
+    
+    LiquidTemplate.create!(:name => 'posts/index', :content => "<p>This is liquid template</p>")
 
     get :index
-    assert_select 'p', 'This is posts template.'
+    assert_select 'p', 'This is liquid template'
   end
 
   test 'passes instance variables to liquid template' do
     setup_controller(PostsController)
+    
+    LiquidTemplate.create!(:name    => 'posts/index', :content => "<h1>{{ title }}</h1>")
 
     get :index
     assert_select 'h1', /Hello blog!/
@@ -80,8 +75,8 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'renders with liquid template when explicit action specified' do
     setup_controller(PostsController)
 
-    @blog.liquid_templates.create!(:name => 'posts/edit',   :content => "<p>edit post</p>")
-    @blog.liquid_templates.create!(:name => 'posts/update', :content => "<p>update post</p>")
+    LiquidTemplate.create!(:name => 'posts/edit',   :content => "<p>edit post</p>")
+    LiquidTemplate.create!(:name => 'posts/update', :content => "<p>update post</p>")
 
     get :update
     assert_select 'p', 'edit post'
@@ -97,11 +92,8 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'renders with liquid template with custom name' do
     setup_controller(CommentsController)
 
-    @blog.liquid_templates.create!(:name    => 'comments/edit',
-                                   :content => "<p>default edit</p>")
-
-    @blog.liquid_templates.create!(:name    => 'funky_comments_edit',
-                                   :content => "<p>funky edit</p>")
+    LiquidTemplate.create!(:name => 'comments/edit', :content => "<p>default edit</p>")
+    LiquidTemplate.create!(:name => 'funky_comments_edit', :content => "<p>funky edit</p>")
 
     get :edit
     assert_select 'p', 'funky edit'
@@ -110,11 +102,9 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'renders liquid template with liquid layout' do
     setup_controller(RatingsController)
 
-    @blog.liquid_templates.create!(
-      :name => 'ratings/show', :content => '<p>This is liquid template</p>')
-
-    @blog.liquid_templates.create!(
-      :name => 'layout', :content => '<div id="layout">{{ content_for_layout }}</div>')
+    LiquidTemplate.create!(:name => 'ratings/show', :content => '<p>This is liquid template</p>')
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
 
     get :show
     assert_select '#layout p', 'This is liquid template'
@@ -123,8 +113,8 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'renders solid template with liquid layout' do
     setup_controller(RatingsController)
 
-    @blog.liquid_templates.create!(
-      :name => 'layout', :content => '<div id="layout">{{ content_for_layout }}</div>')
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
 
     get :edit
     assert_select '#layout p', 'This is not liquid template'
