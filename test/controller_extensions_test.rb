@@ -51,6 +51,11 @@ class RatingsController < BaseController
   end
 end
 
+class SpamsController < BaseController
+  def index
+  end
+end
+
 class ControllerExtensionsTest < ActionController::TestCase
   self.controller_class = nil
 
@@ -98,6 +103,13 @@ class ControllerExtensionsTest < ActionController::TestCase
 
   test 'does not render with liquid template actions that were not liquified' do
     setup_controller(CommentsController)
+
+    get :index
+    assert_select 'h1', 'This is not liquid template'
+  end
+
+  test 'does not render with liquid if liquify macro not called at all' do
+    setup_controller(SpamsController)
 
     get :index
     assert_select 'h1', 'This is not liquid template'

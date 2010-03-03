@@ -53,6 +53,7 @@ module Liquidizer
     
     def liquify?(action)
       self.class.liquify_actions == :all ||
+      self.class.liquify_actions &&
       self.class.liquify_actions.include?(action.to_sym)
     end
 
