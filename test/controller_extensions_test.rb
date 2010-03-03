@@ -20,6 +20,10 @@ class PostsController < BaseController
   def update
     render :action => 'edit'
   end
+
+  def create
+    render :status => :created
+  end
 end
 
 class CommentsController < BaseController
@@ -81,6 +85,16 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :update
     assert_select 'p', 'edit post'
   end
+  
+  test 'preserves additional render options' do
+    setup_controller(PostsController)
+    
+    LiquidTemplate.create!(:name => 'posts/create', :content => "<p>create post</p>")
+
+    get :create
+    assert_response :created
+  end
+
 
   test 'does not render with liquid template actions that were not liquified' do
     setup_controller(CommentsController)
@@ -119,7 +133,6 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :edit
     assert_select '#layout p', 'This is not liquid template'
   end
-
 
   private
 
