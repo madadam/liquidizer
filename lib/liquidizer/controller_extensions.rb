@@ -90,8 +90,14 @@ module Liquidizer
     end
     
     def find_and_parse_liquid_template(name)
-      template = find_liquid_template(name)
-      template && parse_liquid_template(template)
+      if template_record = find_liquid_template(name)
+        template = Liquid::Template.parse(template_record.content)
+        prepare_liquid_template(template)
+
+        template
+      else
+        nil
+      end
     end
 
     def liquid_template_name_for_action(action)
@@ -106,8 +112,10 @@ module Liquidizer
       current_liquid_templates.find_by_name(name)
     end
 
-    def parse_liquid_template(template)
-      Liquid::Template.parse(template.content)
+    # This can be overriden to do some nasty things to the template before it's rendered.
+    # For example, +assigns+ and +registers+ can be set here. The +template+ is an
+    # instance of Liquid::Template.
+    def prepare_liquid_template(template)
     end
 
     def assigns_for_liquify
