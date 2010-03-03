@@ -144,6 +144,8 @@ module Liquidizer
 
     def infer_drop_class(value)
       name = value.class.name + 'Drop'
+      name = Liquidizer.drop_module.to_s + '::' + name if Liquidizer.drop_module
+
       Support.constant_defined?(name) ? name.constantize : nil
     end
 

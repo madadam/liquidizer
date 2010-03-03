@@ -74,7 +74,19 @@ class PostDrop < Liquid::Drop
   end
 
   def title
-    "<b>#{@post.title}</b>"
+    "<em>#{@post.title}</em>"
+  end
+end
+
+module CoolDrops
+  class PostDrop < Liquid::Drop
+    def initialize(post)
+      @post = post
+    end
+
+    def title
+      "<strong>#{@post.title}</strong>"
+    end
   end
 end
 
@@ -83,6 +95,10 @@ class ControllerExtensionsTest < ActionController::TestCase
 
   def setup
     LiquidTemplate.destroy_all
+  end
+
+  def teardown
+    Liquidizer.drop_module = nil
   end
   
   test 'renders with liquid template' do
@@ -173,7 +189,17 @@ class ControllerExtensionsTest < ActionController::TestCase
     LiquidTemplate.create!(:name => 'posts/show', :content => '<h1>{{ post.title }}</h1>')
 
     get :show
-    assert_select 'h1 b', 'Liquidizer is awesome!'
+    assert_select 'h1 em', 'Liquidizer is awesome!'
+  end
+  
+  test 'dropifies instance variables using namespaced drop' do
+    setup_controller(PostsController)
+    Liquidizer.drop_module = CoolDrops
+
+    LiquidTemplate.create!(:name => 'posts/show', :content => '<h1>{{ post.title }}</h1>')
+
+    get :show
+    assert_select 'h1 strong', 'Liquidizer is awesome!'
   end
 
   private

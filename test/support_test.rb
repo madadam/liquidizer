@@ -3,6 +3,9 @@ require File.dirname(__FILE__) + '/test_helper'
 module Foo
   class Bar
   end
+
+  class Awesomeness
+  end
 end
 
 class Bar
