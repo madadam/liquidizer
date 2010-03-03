@@ -1,4 +1,5 @@
 require 'liquid'
+require 'liquidizer/support'
 
 module Liquidizer
   module ControllerExtensions
@@ -117,11 +118,25 @@ module Liquidizer
         assign_name = name[/^@(.*)$/, 1]           # strip @
         next memo if assign_name.starts_with?('_') # skip "private" ivars
 
-        # TODO: liquify the variable
+        value = instance_variable_get(name)
+        value = dropify(value) unless value.respond_to?(:to_liquid)
 
-        memo[assign_name] = instance_variable_get(name)
+        memo[assign_name] = value if value
         memo
       end
+    end
+
+    # Wrap the value in a drop, if it exists. Drop class is infered from the value class:
+    #
+    #   Foo::Bar -> Foo::BarDrop
+    def dropify(value)
+      drop_class = infer_drop_class(value)
+      drop_class && drop_class.new(value)
+    end
+
+    def infer_drop_class(value)
+      name = value.class.name + 'Drop'
+      Support.constant_defined?(name) ? name.constantize : nil
     end
 
     module ClassMethods

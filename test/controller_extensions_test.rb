@@ -17,6 +17,10 @@ class PostsController < BaseController
     @title = 'Hello blog!' 
   end
 
+  def show
+    @post = Post.new(:title => 'Liquidizer is awesome!')
+  end
+
   def update
     render :action => 'edit'
   end
@@ -53,6 +57,24 @@ end
 
 class SpamsController < BaseController
   def index
+  end
+end
+
+class Post
+  def initialize(attributes = {})
+    self.title = attributes[:title]
+  end
+
+  attr_accessor :title
+end
+
+class PostDrop < Liquid::Drop
+  def initialize(post)
+    @post = post
+  end
+
+  def title
+    "<b>#{@post.title}</b>"
   end
 end
 
@@ -100,7 +122,6 @@ class ControllerExtensionsTest < ActionController::TestCase
     assert_response :created
   end
 
-
   test 'does not render with liquid template actions that were not liquified' do
     setup_controller(CommentsController)
 
@@ -144,6 +165,15 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :edit
     assert_select '#layout p', 'This is not liquid template'
+  end
+
+  test 'dropifies instance variables' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'posts/show', :content => '<h1>{{ post.title }}</h1>')
+
+    get :show
+    assert_select 'h1 b', 'Liquidizer is awesome!'
   end
 
   private

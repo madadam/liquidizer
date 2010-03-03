@@ -10,7 +10,7 @@ $: << File.dirname(__FILE__) + '/../app/models'
 require 'liquidizer'
 require 'liquid_template'
 
-LiquidTemplate.template_directory = File.dirname(__FILE__) + '/fixtures'
+Liquidizer.template_path = File.dirname(__FILE__) + '/fixtures'
 
 # Establish a temporary sqlite3 db for testing.
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
