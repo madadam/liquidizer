@@ -26,8 +26,8 @@ And add this to your config/environment.rb:
 
 == How to use
 
-First you have to specify which actions of which controllers should be liquified - rendered
-with loadable liquid templates. To do that, use the +liquify+ controller macro:
+First you have to specify which actions of which controllers should be liquified (rendered
+with loadable liquid templates). To do that, use the +liquify+ controller macro:
 
     class PostController < ApplicationController
       # This will apply the templates to all actions in this controller.
@@ -77,9 +77,9 @@ To liquify also layouts, use the +liquify_layout+ macro:
     end
 
 The last step is to tell Liquidizer where to load the liquid templates from. The way to implement
-this is completely up to you. For example, you can associate the templates for example with the
-Blog model (to follow the blog example) and have something like current_blog, which is loaded by
-the current subdomain.
+this is completely up to you. For example, you can associate the templates with the Blog model
+(to follow the blog example) and have something like current_blog, which is loaded by the
+current subdomain.
 
 In any case, you need to provide a +current_liquid_templates+ method,
 which should return collection of liquid templates to use. This method should return something
@@ -111,6 +111,50 @@ some helpful methods (see the docs for more info):
     end
 
 And that's it. You are now ready to kick asses!
+
+== Variables
+
+All instance variables that you assign in the controller are automatically available in the
+liquid templates. The variable will be automatically wrapped in a "drop", if necessary
+(please check the liquid docs for more details about what types can be passed directly to
+liquid templates and what are drops). For a class Foo, a FooDrop will be used if it
+exists. If variable is not compatible with liquid and there is no corresponding drop class, it
+won't be passed to the template.
+
+Example: 
+
+A controller:
+
+    class PostsController < ActiveRecord::Base
+      liquify
+
+      def show
+        @post = current_blog.posts.find(params[:id])
+      end
+    end
+
+A drop:
+
+    class PostDrop < Liquid::Drop
+      def initialize(post)
+        @post = post
+      end
+
+      def title
+        filter_nasty_stuff(@post.title)
+      end
+    end
+
+Then you can do this in your liquid template:
+
+    <h1>{{ post.title }}</h1>
+
+    <!-- more stuff ... -->
+
+And the post.title will call PostDrop#title, filtering all nasty stuff.
+
+The way how variables are wrapped with drops can be completelly customized by overriding the
++dropify+ method.
 
 == TODO
 
