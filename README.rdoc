@@ -89,7 +89,7 @@ which returns a string containing the liquid template.
 The easies way to do this, is to have a +LiquidTemplate+ model and return a collections of
 those in the +current_liquid_templates+. Liquidizer provides one such model for you,
 but you will probably want to use your own. To make your life easier, there is a module
-+Liquidizer::LiquidTemplate+ which you can include into your template model to extend it with
+Liquidizer::LiquidTemplate which you can include into your template model to extend it with
 some helpful methods (see the docs for more info):
 
     class Blog < ActiveRecord::Base
@@ -160,8 +160,9 @@ The way how variables are wrapped with drops can be completelly customized by ov
 
 The Liquidizer::LiquidTemplate module gives your model capability to fallback to a default
 template, if one is not found in the database. The default templates are stored in
-`db/liquid_templates`. You can configure this location by setting the 
-+Liquidizer.template_path+ attribute.
+db/liquid_templates. You can configure this location by setting the Liquidizer.template_path:
+
+    Liqduidizer.template_path = Rails.root.join('app', 'views', 'liquid_templates')
 
 == TODO
 
