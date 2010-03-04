@@ -86,10 +86,10 @@ which should return collection of liquid templates to use. This method should re
 that responds at least to +find_by_name+ which returns an object that responds to +content+
 which returns a string containing the liquid template.
 
-The easies way to do this, is to have a LiquidTemplate model and return a collections of
+The easies way to do this, is to have a +LiquidTemplate+ model and return a collections of
 those in the +current_liquid_templates+. Liquidizer provides one such model for you,
 but you will probably want to use your own. To make your life easier, there is a module
-Liquidizer::LiquidTemplate which you can include into your template model to extend it with
++Liquidizer::LiquidTemplate+ which you can include into your template model to extend it with
 some helpful methods (see the docs for more info):
 
     class Blog < ActiveRecord::Base
@@ -112,12 +112,12 @@ some helpful methods (see the docs for more info):
 
 And that's it. You are now ready to kick asses!
 
-== Variables
+== Instance variables
 
 All instance variables that you assign in the controller are automatically available in the
 liquid templates. The variable will be automatically wrapped in a "drop", if necessary
 (please check the liquid docs for more details about what types can be passed directly to
-liquid templates and what are drops). For a class Foo, a FooDrop will be used if it
+liquid templates and what are drops). For a class +Foo+, a +FooDrop+ will be used if it
 exists. If variable is not compatible with liquid and there is no corresponding drop class, it
 won't be passed to the template.
 
@@ -156,6 +156,13 @@ And the post.title will call PostDrop#title, filtering all nasty stuff.
 The way how variables are wrapped with drops can be completelly customized by overriding the
 +dropify+ method.
 
+== Default templates
+
+The Liquidizer::LiquidTemplate module gives your model capability to fallback to a default
+template, if one is not found in the database. The default templates are stored in
+`db/liquid_templates`. You can configure this location by setting the 
++Liquidizer.template_path+ attribute.
+
 == TODO
 
 There are several possible improvements to this gem:
@@ -171,7 +178,8 @@ There are several possible improvements to this gem:
   originaly has quite liberal API, allowing to specify it's parameters in many ways. To make
   this gem simple, some of those ways were sacrificed. Would be nice to support them too.
 
-Potentialy many more. In any case, it's open source project (MIT), so no fear, fork me and hack!
+Potentialy many more. In any case, it's open source project (MIT), so no fear, fork me and
+hack away!
 
 == Legal stuff
 
