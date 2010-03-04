@@ -26,6 +26,8 @@ END
 
     gemspec.add_dependency 'liquid', '>= 2.0.0'
   end
+
+  Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler not available. Install it with: gem install jeweler"
 end
