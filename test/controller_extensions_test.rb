@@ -53,6 +53,14 @@ class RatingsController < BaseController
 
   def edit
   end
+
+  def new
+    render :partial => 'stuff'
+  end
+
+  def create
+    render :text => 'create'
+  end
 end
 
 class SpamsController < BaseController
@@ -181,6 +189,26 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :edit
     assert_select '#layout p', 'This is not liquid template'
+  end
+
+  test 'does not apply liquid layout to render :partial' do
+    setup_controller(RatingsController)
+    
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+    get :new
+    assert_select '#layout', false
+  end
+  
+  test 'does not apply liquid layout to render :text' do
+    setup_controller(RatingsController)
+    
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+    get :create
+    assert_select '#layout', false
   end
 
   test 'dropifies instance variables' do

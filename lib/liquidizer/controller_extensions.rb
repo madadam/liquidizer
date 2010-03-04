@@ -67,8 +67,12 @@ module Liquidizer
     end
     
     def liquify_layout?(options)
-      (options[:layout].nil? || options[:layout] == true) &&
+      if options[:layout] == true ||
+         options[:layout].nil? && liquifiable_options?(options)
         self.class.liquid_template_name_for_layout.present?
+      else
+        false
+      end
     end
     
     def extract_action_for_render(options)
