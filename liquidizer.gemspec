@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
      "lib/liquidizer/liquid_template.rb",
      "lib/liquidizer/migration_extensions.rb",
      "lib/liquidizer/support.rb",
+     "liquidizer.gemspec",
      "rails/init.rb",
      "test/controller_extensions_test.rb",
      "test/fixtures/comments/index.html.erb",
