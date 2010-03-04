@@ -15,6 +15,7 @@ class PostsController < BaseController
 
   def index
     @title = 'Hello blog!' 
+    @posts = [Post.new(:title => 'First post'), Post.new(:title => 'Second post')]
   end
 
   def show
@@ -228,6 +229,17 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :show
     assert_select 'h1 strong', 'Liquidizer is awesome!'
+  end
+  
+  test 'dropifies array elements' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'posts/index',
+                           :content => '{% for post in posts %} {{ post.title }} {% endfor %}')
+
+    get :index
+    assert_select 'em', 'First post'
+    assert_select 'em', 'Second post'
   end
 
   private

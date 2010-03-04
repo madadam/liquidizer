@@ -130,8 +130,7 @@ module Liquidizer
         assign_name = name[/^@(.*)$/, 1]           # strip @
         next memo if assign_name.starts_with?('_') # skip "private" ivars
 
-        value = instance_variable_get(name)
-        value = dropify(value) unless value.respond_to?(:to_liquid)
+        value = dropify(instance_variable_get(name))
 
         memo[assign_name] = value if value
         memo
@@ -142,8 +141,16 @@ module Liquidizer
     #
     #   Foo::Bar -> Foo::BarDrop
     def dropify(value)
-      drop_class = infer_drop_class(value)
-      drop_class && drop_class.new(value)
+      if value.respond_to?(:to_liquid)
+        if value.is_a?(Array)
+          value.map { |element| dropify(element) }
+        else
+          value
+        end
+      else
+        drop_class = infer_drop_class(value)
+        drop_class && drop_class.new(value)
+      end
     end
 
     def infer_drop_class(value)
