@@ -242,6 +242,19 @@ class ControllerExtensionsTest < ActionController::TestCase
     assert_select 'em', 'Second post'
   end
 
+  test 'renders partials' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'posts/show',
+                           :content => '<p>This is a template</p> {% include "cool_partial" %}')
+    LiquidTemplate.create!(:name => 'cool_partial',
+                           :content => '<p>This is a partial</p>')
+
+    get :show
+    assert_select 'p', 'This is a template'
+    assert_select 'p', 'This is a partial' 
+  end
+
   private
 
   def setup_controller(controller_class)

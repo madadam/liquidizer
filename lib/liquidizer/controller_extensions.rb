@@ -1,5 +1,6 @@
 require 'liquid'
 require 'liquidizer/support'
+require 'liquidizer/file_system'
 
 module Liquidizer
   module ControllerExtensions
@@ -11,6 +12,8 @@ module Liquidizer
         class_inheritable_accessor :liquify_actions
         class_inheritable_hash     :liquid_template_names_for_actions
         class_inheritable_accessor :liquid_template_name_for_layout
+
+        before_filter :set_liquid_file_system
       end
     end
 
@@ -158,6 +161,10 @@ module Liquidizer
       name = Liquidizer.drop_module.to_s + '::' + name if Liquidizer.drop_module
 
       Support.constant_defined?(name) ? name.constantize : nil
+    end
+
+    def set_liquid_file_system
+      Liquid::Template.file_system = FileSystem.new { current_liquid_templates }
     end
 
     module ClassMethods
