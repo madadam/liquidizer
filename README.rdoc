@@ -66,13 +66,13 @@ Note that this will disable layout rendering with liquid, not layout rendering i
 
 The Liqidizer uses the same naming convention for templates as Rails. So for the 
 Blog::PostsController's action :index, the looked up template will be "blog/posts/index". If
-you want to override it, do it as always:
+you want to override it, do it the standard Rails way:
 
     class PostsController < ApplicationController
       liquify
 
       def index
-        render :action => 'more_awesome_index_template'
+        render :template => 'more_awesome_index_template'
       end
     end
 

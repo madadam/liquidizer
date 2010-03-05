@@ -30,6 +30,10 @@ class PostsController < BaseController
   def create
     render :status => :created
   end
+
+  def new
+    render :template => 'more_awesome_new'
+  end
 end
 
 class CommentsController < BaseController
@@ -124,11 +128,21 @@ class ControllerExtensionsTest < ActionController::TestCase
   test 'renders with liquid template when explicit action specified' do
     setup_controller(PostsController)
 
-    LiquidTemplate.create!(:name => 'posts/edit',   :content => "<p>edit post</p>")
+    LiquidTemplate.create!(:name => 'posts/edit', :content => "<p>edit post</p>")
     LiquidTemplate.create!(:name => 'posts/update', :content => "<p>update post</p>")
 
     get :update
     assert_select 'p', 'edit post'
+  end
+  
+  test 'renders with liquid template when explicit template specified' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'more_awesome_new', :content => "<p>more awesome new</p>")
+    LiquidTemplate.create!(:name => 'posts/new', :content => "<p>less awesome new</p>")
+
+    get :new
+    assert_select 'p', 'more awesome new'
   end
   
   test 'preserves additional render options' do
