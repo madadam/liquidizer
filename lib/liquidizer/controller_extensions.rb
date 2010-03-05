@@ -9,13 +9,14 @@ module Liquidizer
         extend ClassMethods
         alias_method_chain :render, :liquid
 
-        class_inheritable_accessor :liquify_actions
-        class_inheritable_hash     :liquid_template_names_for_actions
-        class_inheritable_accessor :liquid_template_name_for_layout
+        class_inheritable_hash :liquidizer_options
+        self.liquidizer_options ||= {}
 
         before_filter :set_liquid_file_system
       end
     end
+
+    # TODO: support also :template option.
 
     def render_with_liquid(options = {}, &block)
       if action_template = liquid_template_for_action(options)
@@ -56,26 +57,30 @@ module Liquidizer
     end
     
     def liquify?(action)
-      self.class.liquify_actions == :all ||
-      self.class.liquify_actions &&
-      self.class.liquify_actions.include?(action.to_sym)
+      options = self.class.liquidizer_options
+
+      return false unless options[:actions]
+      return false if options[:only] && !Array.wrap(options[:only]).include?(action.to_sym)
+      return false if options[:except] && Array.wrap(options[:except]).include?(action.to_sym)
+
+      true
     end
 
     def liquid_template_for_layout(options)
       if liquify_layout?(options)
-        find_and_parse_liquid_template(self.class.liquid_template_name_for_layout)
+        name = liquid_template_name_for_layout(options)
+        name && find_and_parse_liquid_template(name)
       else
         nil
       end
     end
     
     def liquify_layout?(options)
-      if options[:layout] == true ||
-         options[:layout].nil? && liquifiable_options?(options)
-        self.class.liquid_template_name_for_layout.present?
-      else
-        false
-      end
+      return false unless self.class.liquidizer_options[:layout]
+      return true  if     options[:layout].nil? && liquifiable_options?(options)
+      return true  if     options[:layout] == true
+
+      false
     end
     
     def extract_action_for_render(options)
@@ -87,7 +92,7 @@ module Liquidizer
         action_name
       else
         nil
-      end 
+      end
     end
 
     UNLIQUIFIABLE_OPTIONS = [:partial, :template, :file, :text, :xml, :json, :js, :inline]
@@ -108,11 +113,15 @@ module Liquidizer
     end
 
     def liquid_template_name_for_action(action)
-      liquid_template_names_for_actions[action.to_sym] || infer_liquid_template_name(action)
+      "#{controller_path}/#{action}"
     end
 
-    def infer_liquid_template_name(action)
-      "#{controller_path}/#{action}"
+    def liquid_template_name_for_layout(options)
+      case layout = self.class.read_inheritable_attribute(:layout)
+        when Symbol then __send__(layout)
+        when Proc   then layout.call(self)
+        else layout
+      end
     end
 
     def find_liquid_template(name)
@@ -168,61 +177,24 @@ module Liquidizer
     end
 
     module ClassMethods
-      # Define actions to liquify (render with liquid templates).
+      # Enables liquid rendering.
       #
       # == Examples
       #
       #     # liquify all actions
       #     liquify
       #
-      #     # also liquify all actions
-      #     liquify :all
-      #
       #     # liquify only show and index
-      #     liquify :show, :index  
+      #     liquify :only => [:show, :index]
       #
-      #     # liquify only edit, but use template called awesome_edit
-      #     liquify :edit, :as => 'awesome_edit'
+      #     # liquify all except show and index
+      #     liquify :except => [:show, :index]
       #
-      # Unless you specify template name with the :as options, the name will be
-      # inferend from controller and action names thusly:
+      #     # liquify all, but do not liquify layout
+      #     liquify :layout => false
       #
-      # controller Blog, action :index        - blogs/index
-      # controller Blog, action :show         - blogs/show
-      # controller Blog, action :edit         - blogs/edit
-      #
-      # controller Blog::Post, action :index  - blog/posts/index
-      # controller Blog::Post, action :show   - blog/posts/show
-      # controller Blog::Post, action :edit   - blog/posts/edit
-      #
-      # You've got the idea.
-      #
-      def liquify(*actions)
-        options = actions.extract_options!
-        actions = actions.map(&:to_sym)
-
-        self.liquify_actions = actions.empty? ? :all : actions
-        self.liquid_template_names_for_actions = {}
-
-        if options[:as]
-          actions.each do |action|
-            self.liquid_template_names_for_actions[action] = options[:as]
-          end        
-        end
-      end
-
-      # Liquify the layout.
-      #
-      # == Examples
-      #
-      #     # Uses layout template "layout"
-      #     liquify_layout
-      #
-      #     # Uses layout template "wicked_layout"
-      #     liquify_layout :as => 'wicked_layout'
-      #
-      def liquify_layout(options = {})
-        self.liquid_template_name_for_layout = options[:as] || 'layout'
+      def liquify(options = {})
+        self.liquidizer_options = options.reverse_merge(:actions => true, :layout => true)
       end
     end
   end

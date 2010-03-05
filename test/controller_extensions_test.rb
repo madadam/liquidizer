@@ -11,6 +11,7 @@ class BaseController < ActionController::Base
 end
 
 class PostsController < BaseController
+  layout 'layout'
   liquify
 
   def index
@@ -32,27 +33,19 @@ class PostsController < BaseController
 end
 
 class CommentsController < BaseController
-  liquify :show
-  liquify :edit, :as => 'funky_comments_edit'
+  liquify :only => :show
 
   def index
   end
 
   def show
   end
-
-  def edit
-  end
 end
 
 class RatingsController < BaseController
-  liquify :show
-  liquify_layout
+  liquify :layout => false
 
   def show
-  end
-
-  def edit
   end
 
   def new
@@ -161,20 +154,10 @@ class ControllerExtensionsTest < ActionController::TestCase
     assert_select 'h1', 'This is not liquid template'
   end
 
-  test 'renders with liquid template with custom name' do
-    setup_controller(CommentsController)
-
-    LiquidTemplate.create!(:name => 'comments/edit', :content => "<p>default edit</p>")
-    LiquidTemplate.create!(:name => 'funky_comments_edit', :content => "<p>funky edit</p>")
-
-    get :edit
-    assert_select 'p', 'funky edit'
-  end
-
   test 'renders liquid template with liquid layout' do
-    setup_controller(RatingsController)
+    setup_controller(PostsController)
 
-    LiquidTemplate.create!(:name => 'ratings/show', :content => '<p>This is liquid template</p>')
+    LiquidTemplate.create!(:name => 'posts/show', :content => '<p>This is liquid template</p>')
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
 
@@ -183,15 +166,27 @@ class ControllerExtensionsTest < ActionController::TestCase
   end
   
   test 'renders solid template with liquid layout' do
-    setup_controller(RatingsController)
+    setup_controller(PostsController)
 
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
 
-    get :edit
+    get :show
     assert_select '#layout p', 'This is not liquid template'
   end
+  
+  test 'does not render liquid layout if disabled' do
+    setup_controller(RatingsController)
 
+    LiquidTemplate.create!(:name => 'ratings/show', :content => '<p>This is liquid template</p>')
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+    get :show
+    assert_select 'p', 'This is liquid template'
+    assert_select '#layout', false
+  end
+  
   test 'does not apply liquid layout to render :partial' do
     setup_controller(RatingsController)
     

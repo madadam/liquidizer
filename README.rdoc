@@ -29,28 +29,20 @@ And add this to your config/environment.rb:
 First you have to specify which actions of which controllers should be liquified (rendered
 with loadable liquid templates). To do that, use the +liquify+ controller macro:
 
-    class PostController < ApplicationController
+    class PostsController < ApplicationController
       # This will apply the templates to all actions in this controller.
       liquify
     end
 
-If you want to liquify only some actions, but leave the others to be rendered using standard
-Rails means, do this:
+You can use the :only and :except options that work the same as for filters to limit the
+set of actions to liquify:
 
-    class PostController < ApplicationController
-      # Liquify only :show and :index.
-      liquify :show, :index
+    class PostsController < ApplicationController
+      liquify :only => [:show, :index]
     end
 
-By default, Liquidizer will infer liquid template names from the controller and action name
-in the same way Rails does. So action index in controller PostsController will have
-template called "posts/index". Namespaced controllers work too: index in Blog::PostsController
-will have template "blog/posts/index". This, however, can be overriden:
-
-
-    class PostController < ApplicationController
-      # This will liquify only show, but will use template called "awesome_show_template"
-      liquify :show, :as => 'awesome_show_template'
+    class CommentsController < ApplicationController
+      liquify :except => :edit
     end
 
 The +liquify+ macro is inherited, so if you want to apply liquid templates to all actions
@@ -62,18 +54,26 @@ controllers, if you want:
     end
 
     class PostsController < ApplicationController
-      liquify :show,  :as => 'kickass_show'
-      liquify :index, :as => 'hardcore_index'
+      liquify :only => :show
     end
 
-To liquify also layouts, use the +liquify_layout+ macro:
+The layout is also liquified by default. You can disable it using the :layout => false options.
+Note that this will disable layout rendering with liquid, not layout rendering in general.
 
     class ApplicationController < ActionController::Base
-      # This will use layout called "layout"
-      liquify_layout
+      liquify :layout => false
+    end
 
-      # This will use layout called "awesome_kickass_layout"
-      liquify_layout :as => "awesome_kickass_layout"
+The Liqidizer uses the same naming convention for templates as Rails. So for the 
+Blog::PostsController's action :index, the looked up template will be "blog/posts/index". If
+you want to override it, do it as always:
+
+    class PostsController < ApplicationController
+      liquify
+
+      def index
+        render :action => 'more_awesome_index_template'
+      end
     end
 
 The last step is to tell Liquidizer where to load the liquid templates from. The way to implement
@@ -152,6 +152,25 @@ Then you can do this in your liquid template:
     <!-- more stuff ... -->
 
 And the post.title will call PostDrop#title, filtering all nasty stuff.
+
+If the instance variable is an array (also association collection, active record scope or
+this kind of stuff), all it's elements will be dropified too:
+
+    class PostsController < ActiveRecord::Base
+      liquify
+
+      def index
+        @posts = current_blog.posts
+      end
+    end
+
+Then in your liquid tempalte:
+
+  {% for post in posts %}
+  <h2>{{ post.title }}</h2>
+  
+  <!-- more stuff -->
+  {% endfor %}
 
 The way how variables are wrapped with drops can be completelly customized by overriding the
 +dropify+ method.
