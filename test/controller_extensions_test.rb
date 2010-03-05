@@ -34,9 +34,14 @@ class PostsController < BaseController
   def new
     render :template => 'more_awesome_new'
   end
+
+  def edit
+    render :layout => 'awesome_layout'
+  end
 end
 
 class CommentsController < BaseController
+  layout 'layout'
   liquify :only => :show
 
   def index
@@ -44,20 +49,20 @@ class CommentsController < BaseController
 
   def show
   end
-end
-
-class RatingsController < BaseController
-  liquify :layout => false
-
-  def show
-  end
-
+  
   def new
     render :partial => 'stuff'
   end
 
   def create
     render :text => 'create'
+  end
+end
+
+class RatingsController < BaseController
+  liquify :layout => false
+
+  def show
   end
 end
 
@@ -188,6 +193,22 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select '#layout p', 'This is not liquid template'
   end
+
+  # TODO: make this pass
+  # test 'renders with overriden liquid layout' do
+  #   setup_controller(PostsController)
+
+  #   LiquidTemplate.create!(
+  #     :name => 'awesome_layout',
+  #     :content => '<div id="awesome_layout">{{ content_for_layout }}</div>')
+
+  #   LiquidTemplate.create!(
+  #     :name => 'layout',
+  #     :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+  #   get :edit
+  #   assert_select '#awesome_layout p'
+  # end
   
   test 'does not render liquid layout if disabled' do
     setup_controller(RatingsController)
@@ -202,7 +223,7 @@ class ControllerExtensionsTest < ActionController::TestCase
   end
   
   test 'does not apply liquid layout to render :partial' do
-    setup_controller(RatingsController)
+    setup_controller(CommentsController)
     
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
@@ -212,7 +233,7 @@ class ControllerExtensionsTest < ActionController::TestCase
   end
   
   test 'does not apply liquid layout to render :text' do
-    setup_controller(RatingsController)
+    setup_controller(CommentsController)
     
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
