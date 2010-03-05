@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{liquidizer}
-  s.version = "0.2.1"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cig\303\241nek"]
-  s.date = %q{2010-03-04}
+  s.date = %q{2010-03-05}
   s.description = %q{WIth this gem, you can render your Ruby on Rails views with liquid templates that are loaded from database. This way, the look and feel of your site can be safely configured by it's users.
 }
   s.email = %q{adam.ciganek@gmail.com}
@@ -24,12 +24,14 @@ Gem::Specification.new do |s|
      "app/models/liquid_template.rb",
      "lib/liquidizer.rb",
      "lib/liquidizer/controller_extensions.rb",
+     "lib/liquidizer/file_system.rb",
      "lib/liquidizer/liquid_template.rb",
      "lib/liquidizer/migration_extensions.rb",
      "lib/liquidizer/support.rb",
      "liquidizer.gemspec",
      "rails/init.rb",
      "test/controller_extensions_test.rb",
+     "test/file_system_test.rb",
      "test/fixtures/comments/index.html.erb",
      "test/fixtures/posts/index.liquid",
      "test/fixtures/ratings/_stuff.html.erb",
@@ -48,7 +50,8 @@ Gem::Specification.new do |s|
     "test/support_test.rb",
      "test/liquid_template_test.rb",
      "test/controller_extensions_test.rb",
-     "test/test_helper.rb"
+     "test/test_helper.rb",
+     "test/file_system_test.rb"
   ]
 
   if s.respond_to? :specification_version then
