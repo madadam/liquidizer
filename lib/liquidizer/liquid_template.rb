@@ -6,10 +6,10 @@ module Liquidizer
 
     module ClassMethods
       def find_by_name(name)
-        first(:conditions => {:name => name}) || load_default(name)
+        first(:conditions => {:name => name}) || find_default_by_name(name)
       end
 
-      def load_default(name)
+      def find_default_by_name(name)
         file_name = File.join(Liquidizer.template_path, name) + '.liquid'
 
         if File.exist?(file_name)
