@@ -10,13 +10,15 @@ module Liquidizer
       end
 
       def find_default_by_name(name)
-        file_name = File.join(Liquidizer.template_path, name) + '.liquid'
+        Liquidizer.template_paths.each do |path|
+          file_name = File.join(path, name) + '.liquid'
 
-        if File.exist?(file_name)
-          new(:name => name, :content => File.read(file_name))
-        else
-          nil
+          if File.exist?(file_name)
+            return new(:name => name, :content => File.read(file_name))
+          end
         end
+
+        nil
       end
     end
   end
