@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cig\303\241nek"]
-  s.date = %q{2010-03-05}
+  s.date = %q{2010-03-09}
   s.description = %q{WIth this gem, you can render your Ruby on Rails views with liquid templates that are loaded from database. This way, the look and feel of your site can be safely configured by it's users.
 }
   s.email = %q{adam.ciganek@gmail.com}
@@ -32,10 +32,11 @@ Gem::Specification.new do |s|
      "rails/init.rb",
      "test/controller_extensions_test.rb",
      "test/file_system_test.rb",
+     "test/fixtures/comments/_stuff.html.erb",
      "test/fixtures/comments/index.html.erb",
+     "test/fixtures/layouts/layout.html.erb",
      "test/fixtures/posts/index.liquid",
      "test/fixtures/posts/show.html.erb",
-     "test/fixtures/ratings/_stuff.html.erb",
      "test/fixtures/ratings/edit.html.erb",
      "test/fixtures/spams/index.html.erb",
      "test/liquid_template_test.rb",
