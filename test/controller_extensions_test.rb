@@ -67,6 +67,8 @@ class RatingsController < BaseController
 end
 
 class SpamsController < BaseController
+  layout 'layout'
+
   def index
   end
 end
@@ -170,7 +172,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     setup_controller(SpamsController)
 
     get :index
-    assert_select 'h1', 'This is not liquid template'
+    assert_select '#layout h1', 'This is not liquid template'
   end
 
   test 'renders liquid template with liquid layout' do

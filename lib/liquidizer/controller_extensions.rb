@@ -16,10 +16,9 @@ module Liquidizer
       end
     end
 
-    # TODO: support also :template option.
-
-    def render_with_liquid(options = {}, &block)
+    def render_with_liquid(options = nil, &block)
       if view_template = liquid_template_for_view(options)
+        options ||= {}
         assigns = assigns_for_liquify
         content = view_template.render!(assigns)
 
@@ -32,6 +31,7 @@ module Liquidizer
       else
         if layout_template = liquid_template_for_layout(options)
           assigns = assigns_for_liquify
+          options ||= {}
 
           content = render_to_string(options.merge(:layout => false))
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
@@ -46,7 +46,7 @@ module Liquidizer
     private
 
     def liquid_template_for_view(options)
-      name = options[:template]
+      name = options && options[:template]
 
       unless name
         action = extract_action_for_render(options)
@@ -79,6 +79,8 @@ module Liquidizer
     end
     
     def liquify_layout?(options)
+      options ||= {}
+
       return false unless self.class.liquidizer_options[:layout]
       return true  if     options[:layout].nil? && liquifiable_options?(options)
       return true  if     options[:layout] == true
