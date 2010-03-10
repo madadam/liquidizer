@@ -70,6 +70,8 @@ module Liquidizer
     end
 
     def liquid_template_for_layout(options)
+      options ||= {}
+
       if liquify_layout?(options)
         name = liquid_template_name_for_layout(options)
         name && find_and_parse_liquid_template(name)
@@ -79,13 +81,16 @@ module Liquidizer
     end
     
     def liquify_layout?(options)
-      options ||= {}
-
-      return false unless self.class.liquidizer_options[:layout]
-      return true  if     options[:layout].nil? && liquifiable_options?(options)
-      return true  if     options[:layout] == true
-
-      false
+      if self.class.liquidizer_options[:layout]
+        case options[:layout]
+        when nil   then liquifiable_options?(options)
+        when false then false
+        else
+          true
+        end
+      else
+        false
+      end
     end
     
     def extract_action_for_render(options)
@@ -122,11 +127,11 @@ module Liquidizer
     end
 
     def liquid_template_name_for_layout(options)
-      case layout = self.class.read_inheritable_attribute(:layout)
-        when Symbol then __send__(layout)
-        when Proc   then layout.call(self)
-        else layout
-      end
+      options[:layout] || case layout = self.class.read_inheritable_attribute(:layout)
+                          when Symbol then __send__(layout)
+                          when Proc   then layout.call(self)
+                          else layout
+                          end
     end
 
     def find_liquid_template(name)

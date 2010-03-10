@@ -196,21 +196,24 @@ class ControllerExtensionsTest < ActionController::TestCase
     assert_select '#layout p', 'This is not liquid template'
   end
 
-  # TODO: make this pass
-  # test 'renders with overriden liquid layout' do
-  #   setup_controller(PostsController)
+  test 'renders with overriden liquid layout' do
+    setup_controller(PostsController)
 
-  #   LiquidTemplate.create!(
-  #     :name => 'awesome_layout',
-  #     :content => '<div id="awesome_layout">{{ content_for_layout }}</div>')
+    LiquidTemplate.create!(
+      :name => 'awesome_layout',
+      :content => '<div id="awesome_layout">{{ content_for_layout }}</div>')
 
-  #   LiquidTemplate.create!(
-  #     :name => 'layout',
-  #     :content => '<div id="layout">{{ content_for_layout }}</div>')
+    LiquidTemplate.create!(
+      :name => 'layout',
+      :content => '<div id="layout">{{ content_for_layout }}</div>')
 
-  #   get :edit
-  #   assert_select '#awesome_layout p'
-  # end
+    LiquidTemplate.create!(
+      :name => 'posts/edit',
+      :content => '<p>Awesome liquid template</p>')
+
+    get :edit
+    assert_select '#awesome_layout p'
+  end
   
   test 'does not render liquid layout if disabled' do
     setup_controller(RatingsController)
