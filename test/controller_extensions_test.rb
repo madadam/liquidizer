@@ -246,6 +246,17 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :create
     assert_select '#layout', false
   end
+  
+  test 'applies liquid layout to render :template' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'more_awesome_new', :content => "<p>more awesome new</p>")
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+    get :new
+    assert_select '#layout p', 'more awesome new'
+  end
 
   test 'dropifies instance variables' do
     setup_controller(PostsController)

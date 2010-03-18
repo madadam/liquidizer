@@ -105,7 +105,7 @@ module Liquidizer
       end
     end
 
-    UNLIQUIFIABLE_OPTIONS = [:partial, :template, :file, :text, :xml, :json, :js, :inline]
+    UNLIQUIFIABLE_OPTIONS = [:partial, :file, :text, :xml, :json, :js, :inline]
 
     def liquifiable_options?(options)
       (options.keys.map(&:to_sym) & UNLIQUIFIABLE_OPTIONS).empty?
