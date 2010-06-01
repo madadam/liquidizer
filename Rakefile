@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'rake'
 require 'rake/testtask'
  
@@ -21,7 +23,7 @@ WIth this gem, you can render your Ruby on Rails views with liquid templates tha
 END
 
     gemspec.email    = 'adam.ciganek@gmail.com'
-    gemspec.homepage = 'http://github.com/metatribe/liquidizer'
+    gemspec.homepage = 'http://github.com/madadam/liquidizer'
     gemspec.authors  = ['Adam Cigánek']
 
     gemspec.add_dependency 'liquid', '>= 2.0.0'
