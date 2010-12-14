@@ -38,6 +38,10 @@ class PostsController < BaseController
   def edit
     render :layout => 'awesome_layout'
   end
+
+  def destroy
+    render :nothing => true
+  end
 end
 
 class CommentsController < BaseController
@@ -256,6 +260,16 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :new
     assert_select '#layout p', 'more awesome new'
+  end
+
+  test 'does not apply liquid layout to render :nothing => true' do
+    setup_controller(PostsController)
+
+    LiquidTemplate.create!(:name => 'layout',
+                           :content => '<div id="layout">{{ content_for_layout }}</div>')
+
+    get :destroy
+    assert @response.body.blank?, "response should be blank, but was #{@response.body.inspect}"
   end
 
   test 'dropifies instance variables' do

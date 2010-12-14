@@ -37,7 +37,7 @@ module Liquidizer
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
 
           render_without_liquid(options.merge(:text => content, :layout => false))
-        else    
+        else
           render_without_liquid(options, &block)
         end
       end
@@ -50,15 +50,15 @@ module Liquidizer
 
       unless name
         action = extract_action_for_render(options)
-        
+
         if action && liquify?(action)
-          name = liquid_template_name_for_action(action) 
+          name = liquid_template_name_for_action(action)
         end
       end
 
       name && find_and_parse_liquid_template(name)
     end
-    
+
     def liquify?(action)
       options = self.class.liquidizer_options
 
@@ -79,7 +79,7 @@ module Liquidizer
         nil
       end
     end
-    
+
     def liquify_layout?(options)
       if self.class.liquidizer_options[:layout]
         case options[:layout]
@@ -92,7 +92,7 @@ module Liquidizer
         false
       end
     end
-    
+
     def extract_action_for_render(options)
       if options.nil?
         action_name
@@ -105,12 +105,12 @@ module Liquidizer
       end
     end
 
-    UNLIQUIFIABLE_OPTIONS = [:partial, :file, :text, :xml, :json, :js, :inline]
+    UNLIQUIFIABLE_OPTIONS = [:partial, :file, :text, :xml, :json, :js, :inline, :nothing]
 
     def liquifiable_options?(options)
       (options.keys.map(&:to_sym) & UNLIQUIFIABLE_OPTIONS).empty?
     end
-    
+
     def find_and_parse_liquid_template(name)
       if template_record = find_liquid_template(name)
         template = Liquid::Template.parse(template_record.content)
@@ -147,7 +147,7 @@ module Liquidizer
     def assigns_for_liquify
       variable_names = instance_variable_names
       variable_names -= protected_instance_variables
-      
+
       variable_names.inject({}) do |memo, name|
         assign_name = name[/^@(.*)$/, 1]           # strip @
         next memo if assign_name.starts_with?('_') # skip "private" ivars
