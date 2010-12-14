@@ -1,7 +1,8 @@
 require 'liquidizer/controller_extensions'
 require 'liquidizer/migration_extensions'
 require 'liquidizer/liquid_template'
-      
+require 'liquidizer/version'
+
 module Liquidizer
   # The path the default liquid templates are stored.
   mattr_accessor :template_paths

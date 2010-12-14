@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require File.expand_path(File.dirname(__FILE__) + '/test_helper')
 
 class BaseController < ActionController::Base
   append_view_path File.dirname(__FILE__) + '/fixtures'
@@ -15,7 +15,7 @@ class PostsController < BaseController
   liquify
 
   def index
-    @title = 'Hello blog!' 
+    @title = 'Hello blog!'
     @posts = [Post.new(:title => 'First post'), Post.new(:title => 'Second post')]
   end
 
@@ -49,7 +49,7 @@ class CommentsController < BaseController
 
   def show
   end
-  
+
   def new
     render :partial => 'stuff'
   end
@@ -113,10 +113,10 @@ class ControllerExtensionsTest < ActionController::TestCase
   def teardown
     Liquidizer.drop_module = nil
   end
-  
+
   test 'renders with liquid template' do
     setup_controller(PostsController)
-    
+
     LiquidTemplate.create!(:name => 'posts/index', :content => "<p>This is liquid template</p>")
 
     get :index
@@ -125,7 +125,7 @@ class ControllerExtensionsTest < ActionController::TestCase
 
   test 'passes instance variables to liquid template' do
     setup_controller(PostsController)
-    
+
     LiquidTemplate.create!(:name => 'posts/index', :content => "<h1>{{ title }}</h1>")
 
     get :index
@@ -141,7 +141,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :update
     assert_select 'p', 'edit post'
   end
-  
+
   test 'renders with liquid template when explicit template specified' do
     setup_controller(PostsController)
 
@@ -151,10 +151,10 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :new
     assert_select 'p', 'more awesome new'
   end
-  
+
   test 'preserves additional render options' do
     setup_controller(PostsController)
-    
+
     LiquidTemplate.create!(:name => 'posts/create', :content => "<p>create post</p>")
 
     get :create
@@ -185,7 +185,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select '#layout p', 'This is liquid template'
   end
-  
+
   test 'renders solid template with liquid layout' do
     setup_controller(PostsController)
 
@@ -214,7 +214,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :edit
     assert_select '#awesome_layout p'
   end
-  
+
   test 'does not render liquid layout if disabled' do
     setup_controller(RatingsController)
 
@@ -226,27 +226,27 @@ class ControllerExtensionsTest < ActionController::TestCase
     assert_select 'p', 'This is liquid template'
     assert_select '#layout', false
   end
-  
+
   test 'does not apply liquid layout to render :partial' do
     setup_controller(CommentsController)
-    
+
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
 
     get :new
     assert_select '#layout', false
   end
-  
+
   test 'does not apply liquid layout to render :text' do
     setup_controller(CommentsController)
-    
+
     LiquidTemplate.create!(:name => 'layout',
                            :content => '<div id="layout">{{ content_for_layout }}</div>')
 
     get :create
     assert_select '#layout', false
   end
-  
+
   test 'applies liquid layout to render :template' do
     setup_controller(PostsController)
 
@@ -266,7 +266,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select 'h1 em', 'Liquidizer is awesome!'
   end
-  
+
   test 'dropifies instance variables using namespaced drop' do
     setup_controller(PostsController)
     Liquidizer.drop_module = CoolDrops
@@ -276,7 +276,7 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select 'h1 strong', 'Liquidizer is awesome!'
   end
-  
+
   test 'dropifies array elements' do
     setup_controller(PostsController)
 
@@ -298,14 +298,14 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :show
     assert_select 'p', 'This is a template'
-    assert_select 'p', 'This is a partial' 
+    assert_select 'p', 'This is a partial'
   end
 
   private
 
   def setup_controller(controller_class)
     self.class.prepare_controller_class(controller_class)
-  
+
     # This is copied over from ActionController::TestCase.setup_controller_request_and_response
     @controller = controller_class.new
     @controller.request = @request
