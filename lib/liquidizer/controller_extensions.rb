@@ -16,37 +16,60 @@ module Liquidizer
       end
     end
 
-    def render_with_liquid(options = nil, &block)
+    def render_with_liquid(options = nil, extra_options = {}, &block)
       # use normal render if "liquify" has not been called in the controller
-      return render_without_liquid(options, &block) if !self.class.liquify_enabled?
-            
-      if view_template = liquid_template_for_view(options)
-        options ||= {}
+      return render_without_liquid(options, extra_options, &block) unless self.class.liquify_enabled?
+
+      liquid_options = handle_multiple_options(options, extra_options) || {}
+
+      if view_template = liquid_template_for_view(liquid_options)
         assigns = assigns_for_liquify
         content = view_template.render!(assigns)
 
-        if layout_template = liquid_template_for_layout(options)
+        if layout_template = liquid_template_for_layout(liquid_options)
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
-          options[:layout] = false
+          liquid_options[:layout] = false
         end
 
-        render_without_liquid(options.merge(:text => content))
+        render_without_liquid(liquid_options.merge(:text => content))
       else
-        if layout_template = liquid_template_for_layout(options)
+        if layout_template = liquid_template_for_layout(liquid_options)
           assigns = assigns_for_liquify
-          options ||= {}
 
-          content = render_to_string(options.merge(:layout => false))
+          content = render_to_string(liquid_options.merge(:layout => false))
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
 
-          render_without_liquid(options.merge(:text => content, :layout => false))
+          render_without_liquid(options, extra_options.merge(:text => content, :layout => false))
         else
-          render_without_liquid(options, &block)
+          render_without_liquid(options, extra_options, &block)
         end
       end
     end
 
     private
+
+    # taken from Rails #render
+    def handle_multiple_options options, extra_options
+      if options.nil?
+        # Rails fetch default template, but that is not possible (there is no template)
+      elsif options.is_a?(String) || options.is_a?(Symbol)
+        case options.to_s.index('/')
+        when 0
+          extra_options[:file] = options
+        when nil
+          extra_options[:action] = options
+        else
+          extra_options[:template] = options
+        end
+
+        options = extra_options
+      elsif !options.is_a?(Hash)
+        extra_options[:partial] = options
+        options = extra_options
+      end
+
+      options
+    end
 
     def liquid_template_for_view(options)
       name = options && options[:template]
