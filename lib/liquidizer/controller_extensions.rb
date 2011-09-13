@@ -39,7 +39,7 @@ module Liquidizer
           content = render_to_string(liquid_options.merge(:layout => false))
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
 
-          render_without_liquid(options, extra_options.merge(:text => content, :layout => false))
+          render_without_liquid(liquid_options.merge(:text => content, :layout => false))
         else
           render_without_liquid(options, extra_options, &block)
         end
@@ -102,7 +102,6 @@ module Liquidizer
     end
 
     def liquid_template_for_layout(options)
-
       if liquify_layout?(options)
         name = liquid_template_name_for_layout(options)
         name && find_and_parse_liquid_template(name)
@@ -243,7 +242,7 @@ module Liquidizer
       end
       
       def liquify_enabled?
-        self.liquidizer_options != {}
+        self.liquidizer_options.present?
       end
       
     end

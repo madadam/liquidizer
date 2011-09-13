@@ -12,6 +12,9 @@ end
 
 class RailsController < BaseController
 
+  layout 'login_layout', :only => [:login]
+  liquify :only => [:login]
+
   def show
     render :edit, :layout => false
   end
@@ -22,6 +25,12 @@ class RailsController < BaseController
 
   def update
     render
+  end
+
+  def login
+    LiquidTemplate.create!(:name => 'login_layout',
+                           :content => '<div id="login_layout">{{ content_for_layout }}</div>')
+    render 'posts/show'
   end
 
 end
@@ -351,6 +360,16 @@ class ControllerExtensionsTest < ActionController::TestCase
 
     get :update
     assert_select 'p', 'Rails update action'
+  end
+
+  test 'call to render with template and liquid layout' do
+    setup_controller(RailsController)
+
+    get :login
+    assert_select 'p', 'This is not liquid template'
+
+    assert_select '#layout', false
+    assert_select '#login_layout', true
   end
 
   private
