@@ -20,7 +20,7 @@ module Liquidizer
       # use normal render if "liquify" has not been called in the controller
       return render_without_liquid(options, extra_options, &block) unless self.class.liquify_enabled?
 
-      liquid_options = handle_multiple_options(options, extra_options) || {}
+      liquid_options = handle_multiple_options(options, extra_options)
 
       if view_template = liquid_template_for_view(liquid_options)
         assigns = assigns_for_liquify
@@ -50,8 +50,12 @@ module Liquidizer
 
     # taken from Rails #render
     def handle_multiple_options options, extra_options
+      extra_options = extra_options.dup
+
       if options.nil?
         # Rails fetch default template, but that is not possible (there is no template)
+        options = extra_options
+
       elsif options.is_a?(String) || options.is_a?(Symbol)
         case options.to_s.index('/')
         when 0
@@ -63,8 +67,10 @@ module Liquidizer
         end
 
         options = extra_options
+
       elsif !options.is_a?(Hash)
         extra_options[:partial] = options
+
         options = extra_options
       end
 
@@ -96,7 +102,6 @@ module Liquidizer
     end
 
     def liquid_template_for_layout(options)
-      options ||= {}
 
       if liquify_layout?(options)
         name = liquid_template_name_for_layout(options)

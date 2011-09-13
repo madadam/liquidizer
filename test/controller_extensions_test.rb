@@ -10,6 +10,22 @@ class BaseController < ActionController::Base
   end
 end
 
+class RailsController < BaseController
+
+  def show
+    render :edit, :layout => false
+  end
+
+  def edit
+    render 'posts/show'
+  end
+
+  def update
+    render
+  end
+
+end
+
 class PostsController < BaseController
   layout 'layout'
   liquify
@@ -313,6 +329,28 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select 'p', 'This is a template'
     assert_select 'p', 'This is a partial'
+  end
+
+  test 'call to render with symbol' do
+    setup_controller(RailsController)
+
+    get :show
+    assert_select 'p', 'Rails edit action'
+    assert_select '#layout', false
+  end
+
+  test 'call to render with template name' do
+    setup_controller(RailsController)
+
+    get :edit
+    assert_select 'p', 'This is not liquid template'
+  end
+
+  test 'call to render without anything' do
+    setup_controller(RailsController)
+
+    get :update
+    assert_select 'p', 'Rails update action'
   end
 
   private
