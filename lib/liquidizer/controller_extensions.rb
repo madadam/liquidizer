@@ -157,7 +157,7 @@ module Liquidizer
     end
 
     def liquid_template_name_for_layout(options)
-      options[:layout] || case layout = self.class.read_inheritable_attribute(:layout)
+      options[:layout] || @_liquid_layout || case layout = self.class.read_inheritable_attribute(:layout)
                           when Symbol then __send__(layout)
                           when Proc   then layout.call(self)
                           else layout
