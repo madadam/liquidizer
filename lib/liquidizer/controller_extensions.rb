@@ -9,7 +9,7 @@ module Liquidizer
         extend ClassMethods
         alias_method_chain :render, :liquid
 
-        class_inheritable_hash :liquidizer_options
+        class_inheritable_accessor :liquidizer_options
         self.liquidizer_options ||= {}
 
         before_filter :set_liquid_file_system
