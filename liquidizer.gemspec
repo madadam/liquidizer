@@ -18,8 +18,8 @@ END
 
   s.required_rubygems_version = ">= 1.3.7"
 
-  s.add_dependency 'actionpack',   '~> 2.3.5'
-  s.add_dependency 'activerecord', '~> 2.3.5'
+  s.add_dependency 'actionpack'
+  s.add_dependency 'activerecord'
   s.add_dependency 'liquid',       '>= 2.0.0'
  
   s.files = Dir.glob('{lib,bin}/**/*')
