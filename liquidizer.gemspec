@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
  
@@ -8,7 +7,7 @@ Gem::Specification.new do |s|
   s.name        = 'liquidizer'
   s.version     = Liquidizer::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Adam Cigánek"]
+  s.authors     = ["Adam Ciganek"]
   s.email       = 'adam.ciganek@gmail.com'
   s.homepage    = 'http://github.com/madadam/liquidizer'
   s.summary     = 'Support for Ruby on Rails views powered by Liquid and loaded from database'
