@@ -9,41 +9,73 @@ module Liquidizer
         extend ClassMethods
         alias_method_chain :render, :liquid
 
-        class_inheritable_hash :liquidizer_options
+        class_inheritable_accessor :liquidizer_options
         self.liquidizer_options ||= {}
 
         before_filter :set_liquid_file_system
       end
     end
 
-    def render_with_liquid(options = nil, &block)
-      if view_template = liquid_template_for_view(options)
-        options ||= {}
+    def render_with_liquid(options = nil, extra_options = {}, &block)
+      # use normal render if "liquify" has not been called in the controller
+      return render_without_liquid(options, extra_options, &block) unless self.class.liquify_enabled?
+
+      liquid_options = handle_multiple_options(options, extra_options)
+
+      if view_template = liquid_template_for_view(liquid_options)
         assigns = assigns_for_liquify
         content = view_template.render!(assigns)
 
-        if layout_template = liquid_template_for_layout(options)
+        if layout_template = liquid_template_for_layout(liquid_options)
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
-          options[:layout] = false
+          liquid_options[:layout] = false
         end
 
-        render_without_liquid(options.merge(:text => content))
+        render_without_liquid(liquid_options.merge(:text => content))
       else
-        if layout_template = liquid_template_for_layout(options)
+        if layout_template = liquid_template_for_layout(liquid_options)
           assigns = assigns_for_liquify
-          options ||= {}
 
-          content = render_to_string(options.merge(:layout => false))
+          content = render_to_string(liquid_options.merge(:layout => false))
           content = layout_template.render!(assigns.merge('content_for_layout' => content))
 
-          render_without_liquid(options.merge(:text => content, :layout => false))
+          render_without_liquid(liquid_options.merge(:text => content, :layout => false))
         else
-          render_without_liquid(options, &block)
+          render_without_liquid(options, extra_options, &block)
         end
       end
     end
 
     private
+
+    # taken from Rails #render
+    def handle_multiple_options options, extra_options
+      extra_options = extra_options.dup
+
+      if options.nil?
+        # Rails fetch default template, but that is not possible (there is no template)
+        options = extra_options
+
+      elsif options.is_a?(String) || options.is_a?(Symbol)
+        case options.to_s.index('/')
+        when 0
+          extra_options[:file] = options
+        when nil
+          extra_options[:action] = options
+        else
+          extra_options[:template] = options
+        end
+
+        options = extra_options
+
+      elsif !options.is_a?(Hash)
+        extra_options[:partial] = options
+
+        options = extra_options
+      end
+
+      options
+    end
 
     def liquid_template_for_view(options)
       name = options && options[:template]
@@ -70,8 +102,6 @@ module Liquidizer
     end
 
     def liquid_template_for_layout(options)
-      options ||= {}
-
       if liquify_layout?(options)
         name = liquid_template_name_for_layout(options)
         name && find_and_parse_liquid_template(name)
@@ -127,7 +157,7 @@ module Liquidizer
     end
 
     def liquid_template_name_for_layout(options)
-      options[:layout] || case layout = self.class.read_inheritable_attribute(:layout)
+      options[:layout] || @_liquid_layout || case layout = self.class.read_inheritable_attribute(:layout)
                           when Symbol then __send__(layout)
                           when Proc   then layout.call(self)
                           else layout
@@ -206,6 +236,15 @@ module Liquidizer
       def liquify(options = {})
         self.liquidizer_options = options.reverse_merge(:actions => true, :layout => true)
       end
+      
+      def remove_liquify
+        self.liquidizer_options.clear
+      end
+      
+      def liquify_enabled?
+        self.liquidizer_options.present?
+      end
+      
     end
   end
 end

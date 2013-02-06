@@ -10,6 +10,31 @@ class BaseController < ActionController::Base
   end
 end
 
+class RailsController < BaseController
+
+  layout 'login_layout', :only => [:login]
+  liquify :only => [:login]
+
+  def show
+    render :edit, :layout => false
+  end
+
+  def edit
+    render 'posts/show'
+  end
+
+  def update
+    render
+  end
+
+  def login
+    LiquidTemplate.create!(:name => 'login_layout',
+                           :content => '<div id="login_layout">{{ content_for_layout }}</div>')
+    render 'posts/show'
+  end
+
+end
+
 class PostsController < BaseController
   layout 'layout'
   liquify
@@ -313,6 +338,38 @@ class ControllerExtensionsTest < ActionController::TestCase
     get :show
     assert_select 'p', 'This is a template'
     assert_select 'p', 'This is a partial'
+  end
+
+  test 'call to render with symbol' do
+    setup_controller(RailsController)
+
+    get :show
+    assert_select 'p', 'Rails edit action'
+    assert_select '#layout', false
+  end
+
+  test 'call to render with template name' do
+    setup_controller(RailsController)
+
+    get :edit
+    assert_select 'p', 'This is not liquid template'
+  end
+
+  test 'call to render without anything' do
+    setup_controller(RailsController)
+
+    get :update
+    assert_select 'p', 'Rails update action'
+  end
+
+  test 'call to render with template and liquid layout' do
+    setup_controller(RailsController)
+
+    get :login
+    assert_select 'p', 'This is not liquid template'
+
+    assert_select '#layout', false
+    assert_select '#login_layout', true
   end
 
   private
